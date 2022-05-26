@@ -33,13 +33,20 @@ const verifyJWT = async (req, res, next) => {
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.CLUSTER_URL}/ManufactureOnline?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
-// const fetchData = async () => {
-//     try {
-//         await client.connect();
-//     } finally {
+const fetchData = async () => {
+    try {
+        await client.connect();
+        const db = client.db('ManufactureOnline');
 
-//     }
-// };
+        app.get('/products', async (req, res) => {
+            const productsColl = db.collection('Products');
+            const products = await productsColl.find({}).toArray();
+            res.send(products);
+        });
+    } finally {
+
+    }
+};
 
 fetchData().catch(console.dir);
 
