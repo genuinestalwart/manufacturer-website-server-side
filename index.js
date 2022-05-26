@@ -37,11 +37,16 @@ const fetchData = async () => {
     try {
         await client.connect();
         const db = client.db('ManufactureOnline');
+        const productsColl = db.collection('Products');
 
         app.get('/products', async (req, res) => {
-            const productsColl = db.collection('Products');
             const products = await productsColl.find({}).toArray();
             res.send(products);
+        });
+
+        app.get('/product/:_id', async (req, res) => {
+            const product = await productsColl.findOne({ "_id": ObjectId(req.params._id) });
+            res.send(product);
         });
     } finally {
 
