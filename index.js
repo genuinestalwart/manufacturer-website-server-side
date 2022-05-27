@@ -78,6 +78,11 @@ const fetchData = async () => {
 
             res.status(200).send({ message: 'purchase successful' });
         });
+
+        app.get('/orders', async (req, res) => {
+            const orders = await ordersColl.findOne(req.query);
+            res.send(orders.orders);
+        });
     } finally {
 
     }
@@ -98,11 +103,11 @@ app.post('/auth', (req, res) => {
 });
 
 // Verifying User
-app.post('/verify', verifyJWT, (req, res) => {
+app.get('/verify', verifyJWT, (req, res) => {
     const decodedEmail = req.decoded.email;
-    const bodyEmail = req.body.email;
+    const queryEmail = req.query.email;
 
-    if (bodyEmail === decodedEmail) {
+    if (queryEmail === decodedEmail) {
         res.status(200).send({ message: 'valid user' });
     } else {
         res.status(403).send({ message: 'forbidden access' });
