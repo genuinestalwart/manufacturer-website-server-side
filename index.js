@@ -38,6 +38,7 @@ const fetchData = async () => {
         await client.connect();
         const db = client.db('ManufactureOnline');
         const productsColl = db.collection('Products');
+        const ordersColl = db.collection('Orders');
 
         app.get('/products', async (req, res) => {
             const products = await productsColl.find({}).toArray();
@@ -47,6 +48,33 @@ const fetchData = async () => {
         app.get('/product/:_id', async (req, res) => {
             const product = await productsColl.findOne({ "_id": ObjectId(req.params._id) });
             res.send(product);
+        });
+
+        app.post('/purchase', async (req, res) => {
+            const {
+                deliverTo, amount, email,
+                phoneNumber, productId,
+                totalPrice, username
+            } = req.body;
+            const user = await ordersColl.findOne({ email, username });
+
+            if (user) {
+                await ordersColl.updateOne({ "_id": ObjectId(user._id) },
+                    {
+                        $push: {
+                            orders: { productId, amount, totalPrice, deliverTo, phoneNumber }
+                        }
+                    });
+            } else {
+                const cart = {
+                    username, email, orders: [
+                        {
+                            productId, amount, totalPrice, deliverTo, phoneNumber
+                        }
+                    ]
+                };
+                await ordersColl.insertOne(cart);
+            }
         });
     } finally {
 
