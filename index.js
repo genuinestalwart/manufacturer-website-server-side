@@ -50,7 +50,7 @@ const fetchData = async () => {
             res.send(product);
         });
 
-        app.post('/purchase', async (req, res) => {
+        app.put('/purchase', async (req, res) => {
             const {
                 deliverTo, amount, email,
                 phoneNumber, productId,
@@ -75,6 +75,8 @@ const fetchData = async () => {
                 };
                 await ordersColl.insertOne(cart);
             }
+
+            res.status(200).send({ message: 'purchase successful' });
         });
     } finally {
 
@@ -93,6 +95,18 @@ app.post('/auth', (req, res) => {
     const user = req.body;
     const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' });
     res.send({ accessToken });
+});
+
+// Verifying User
+app.post('/verify', verifyJWT, (req, res) => {
+    const decodedEmail = req.decoded.email;
+    const bodyEmail = req.body.email;
+
+    if (bodyEmail === decodedEmail) {
+        res.status(200).send({ message: 'valid user' });
+    } else {
+        res.status(403).send({ message: 'forbidden access' });
+    }
 });
 
 // Listening to port
