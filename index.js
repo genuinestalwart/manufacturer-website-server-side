@@ -40,6 +40,17 @@ const fetchData = async () => {
         const db = client.db('ManufactureOnline');
         const productsColl = db.collection('Products');
         const ordersColl = db.collection('Orders');
+        const usersColl = db.collection('Users');
+
+        app.post('/signup', async (req, res) => {
+            await usersColl.insertOne(req.body);
+            res.status(200).send({ message: 'user created' });
+        });
+
+        app.get('/verify-admin', verifyJWT, async (req, res) => {
+            const user = await usersColl.findOne(req.query);
+            res.send(user);
+        });
 
         app.get('/products', async (req, res) => {
             const products = await productsColl.find({}).toArray();
@@ -52,8 +63,7 @@ const fetchData = async () => {
         });
 
         app.put('/purchase', verifyJWT, async (req, res) => {
-            const cart = req.body;
-            await ordersColl.insertOne(cart);
+            await ordersColl.insertOne(req.body);
             res.status(200).send({ message: 'purchase successful' });
         });
 
@@ -63,7 +73,6 @@ const fetchData = async () => {
         });
 
         app.get('/order', verifyJWT, async (req, res) => {
-            console.log(req.query);
             const order = await ordersColl.findOne({ "_id": ObjectId(req.query._id) });
             res.send(order);
         });
