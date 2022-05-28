@@ -51,37 +51,18 @@ const fetchData = async () => {
         });
 
         app.put('/purchase', async (req, res) => {
-            const {
-                deliverTo, amount, email,
-                phoneNumber, productId,
-                totalPrice, username
-            } = req.body;
-            const user = await ordersColl.findOne({ email, username });
-
-            if (user) {
-                await ordersColl.updateOne({ "_id": ObjectId(user._id) },
-                    {
-                        $push: {
-                            orders: { productId, amount, totalPrice, deliverTo, phoneNumber }
-                        }
-                    });
-            } else {
-                const cart = {
-                    username, email, orders: [
-                        {
-                            productId, amount, totalPrice, deliverTo, phoneNumber
-                        }
-                    ]
-                };
-                await ordersColl.insertOne(cart);
-            }
-
+            const cart = req.body;
+            await ordersColl.insertOne(cart);
             res.status(200).send({ message: 'purchase successful' });
         });
 
-        app.get('/orders', async (req, res) => {
-            const orders = await ordersColl.findOne(req.query);
-            res.send(orders.orders);
+        app.get('/orders', verifyJWT, async (req, res) => {
+            const orders = await ordersColl.find(req.query).toArray();
+            res.send(orders);
+        });
+
+        app.delete('/cancel-order', async (req, res) => {
+            await ordersColl.deleteOne({ "_id": ObjectId(req.body._id) });
         });
     } finally {
 
