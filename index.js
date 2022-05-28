@@ -62,6 +62,12 @@ const fetchData = async () => {
             res.send(orders);
         });
 
+        app.get('/order', verifyJWT, async (req, res) => {
+            console.log(req.query);
+            const order = await ordersColl.findOne({ "_id": ObjectId(req.query._id) });
+            res.send(order);
+        });
+
         app.delete('/cancel-order', verifyJWT, async (req, res) => {
             await ordersColl.deleteOne({ "_id": ObjectId(req.body._id) });
             res.send({ message: 'order deleted' });
