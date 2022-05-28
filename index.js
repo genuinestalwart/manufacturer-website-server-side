@@ -79,6 +79,16 @@ const fetchData = async () => {
 
             res.send({ clientSecret: paymentIntent.client_secret, });
         });
+
+        app.post('/payment', verifyJWT, async (req, res) => {
+            const { transactionId, orderId } = req.body;
+            await ordersColl.updateOne({ "_id": ObjectId(orderId) }, {
+                $set: {
+                    transactionId, paid: true
+                }
+            });
+            res.send({ message: 'payment info saved' });
+        });
     } finally {
 
     }
