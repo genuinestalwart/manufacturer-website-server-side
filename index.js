@@ -1,10 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const stripe = require('stripe')(process.env.STRIPE_SECRECT_KEY);
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
-require('dotenv').config();
 
 // Middlewares
 app.use(express.json());
@@ -50,7 +51,7 @@ const fetchData = async () => {
             res.send(product);
         });
 
-        app.put('/purchase', async (req, res) => {
+        app.put('/purchase', verifyJWT, async (req, res) => {
             const cart = req.body;
             await ordersColl.insertOne(cart);
             res.status(200).send({ message: 'purchase successful' });
@@ -61,8 +62,22 @@ const fetchData = async () => {
             res.send(orders);
         });
 
-        app.delete('/cancel-order', async (req, res) => {
+        app.delete('/cancel-order', verifyJWT, async (req, res) => {
             await ordersColl.deleteOne({ "_id": ObjectId(req.body._id) });
+            res.send({ message: 'order deleted' });
+        });
+
+        app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+            const { totalPrice } = req.body;
+            const amount = totalPrice * 100;
+
+            // Create a PaymentIntent with the order amount and currency
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount, currency: "usd",
+                payment_method_types: ['card']
+            });
+
+            res.send({ clientSecret: paymentIntent.client_secret, });
         });
     } finally {
 
